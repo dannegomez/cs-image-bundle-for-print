@@ -80,7 +80,7 @@ namespace ImageBundleForPrint
             //create new image
             bitmap = new Bitmap(outputWidth, outputHeight);
             g = Graphics.FromImage(bitmap);
-            g.Clear(Color.Gray);
+            g.Clear(Color.White);
 
             //size of every image box
             int box_width = (int)Math.Floor((double)outputWidth / image_cols);
