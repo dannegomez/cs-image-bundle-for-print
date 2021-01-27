@@ -11,9 +11,17 @@ namespace ImageBundleForPrint
 {
     class Program
     {
+        //Image grid
         int image_cols = 3;
         int image_rows = 3;
+
+        //Image list
         List<string> image_paths = new List<string>();
+
+        //Program params
+        bool verbose = false;
+        string paperSize = "a4";
+        int dpi = 96;
 
         static void Main(string[] args)
         {
@@ -22,6 +30,7 @@ namespace ImageBundleForPrint
             // Go to http://aka.ms/dotnet-get-started-console to continue learning how to build a console app! 
 
             Program p = new Program();
+            p.ReadParams();
             p.ReadInput(args);
             if (p.image_paths.Count > 0)
             {
@@ -29,24 +38,71 @@ namespace ImageBundleForPrint
             }
         }
 
+        void ReadParams()
+        {
+            string exeName = Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location);
+            string[] arrExeName = exeName.Replace(".exe", "").Split('-');
+            foreach (string param in arrExeName)
+            {
+                string value = param.Trim();
+                if (value.StartsWith("s "))
+                {
+                    value = value.Replace("s ", "").ToLower();
+                    if (value.Equals("a3") ||
+                        value.Equals("a4") ||
+                        value.Equals("a5"))
+                    {
+                        paperSize = value;
+                    }
+                    else
+                    {
+                        output("Paper size allowed, A3, A4, A5");
+                    }
+                }
+
+                if (value.Equals("v"))
+                {
+                    verbose = true;
+                    value = value.Replace("v ", "").ToLower();
+                    if (value.Length>0 && value.Equals("false"))
+                    {
+                        verbose = false;
+                    }
+                }
+
+                if (value.StartsWith("dpi "))
+                {
+                    value = value.Replace("dpi ", "").ToLower();
+                    int intValue = int.Parse(value);
+                    if (intValue > 20 && intValue <= 300 )
+                    {
+                        dpi = intValue;
+                    }
+                    else
+                    {
+                        output("Dpi needs to be between 20 and 300");
+                    }
+                }
+            }
+        }
+
         void ReadInput(string[] args)
         {
-
-            //Console.WriteLine("Reading input");
+            output("Reading input");
 
             //loop all images, check if jpg
-            for (int i = 0; i < args.Length ; i++)
+            for (int i = 0; i < args.Length; i++)
             {
                 string filepath = args[i];
-                if (!filepath.EndsWith(".jpg"))
+                if (!filepath.ToLower().EndsWith(".jpg"))
                 {
-                    Console.WriteLine("Skipping file nr " + (i + 1) + " bad fileformat.");
+                    output("Skipping file nr " + (i + 1) + " bad fileformat.");
                     continue;
                 }
 
                 if (!File.Exists(filepath))
                 {
-                    Console.WriteLine("Skipping file nr " + (i + 1) + " missing file.");
+                    output("Skipping file nr " + (i + 1) + " missing file.");
                     continue;
                 }
 
@@ -55,18 +111,28 @@ namespace ImageBundleForPrint
 
             }
 
-            //Console.WriteLine(image_paths.Count + " images found.");
+            output(image_paths.Count + " images found");
         }
 
         void CreatePrintImage()
         {
-            string paperSize = "A4";
             int outputWidth = 1024;
             int outputHeight = 1024;
             Bitmap bitmap;
             Graphics g;
 
-            if (paperSize.Equals("A4"))
+            if (paperSize.Equals("a3"))
+            {
+                //get paper size in pixels
+                outputWidth = CmToPx(29.7);
+                outputHeight = CmToPx(42.0);
+
+                //calc cols/rows in output
+                image_cols = Convert.ToInt32(Math.Ceiling((double)image_paths.Count * 0.3)); //1 - 29.7/42.0
+                image_rows = Convert.ToInt32(Math.Ceiling((double)image_paths.Count / image_cols));
+            }
+
+            if (paperSize.Equals("a4"))
             {
                 //get paper size in pixels
                 outputWidth = CmToPx(21.0);
@@ -74,7 +140,18 @@ namespace ImageBundleForPrint
 
                 //calc cols/rows in output
                 image_cols = Convert.ToInt32(Math.Ceiling((double)image_paths.Count * 0.3)); //1 - 21.0/29.7
-                image_rows = Convert.ToInt32(Math.Ceiling((double)image_paths.Count/image_cols));
+                image_rows = Convert.ToInt32(Math.Ceiling((double)image_paths.Count / image_cols));
+            }
+
+            if (paperSize.Equals("a5"))
+            {
+                //get paper size in pixels
+                outputWidth = CmToPx(14.8);
+                outputHeight = CmToPx(21.0);
+
+                //calc cols/rows in output
+                image_cols = Convert.ToInt32(Math.Ceiling((double)image_paths.Count * 0.3)); //1 - 14.8/21.0
+                image_rows = Convert.ToInt32(Math.Ceiling((double)image_paths.Count / image_cols));
             }
 
             //create new image
@@ -98,7 +175,8 @@ namespace ImageBundleForPrint
                 for (int c = 0; c < image_cols; c++)
                 {
                     //still more images
-                    if (image_index < image_paths.Count) {
+                    if (image_index < image_paths.Count)
+                    {
                         string filename = image_paths[image_index];
                         g.DrawImage(resizeImage(filename, box_width, box_height),
                             pos_x,
@@ -111,10 +189,20 @@ namespace ImageBundleForPrint
                 pos_y += box_height;
             }
 
-            bitmap.Save("output.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+            try
+            {
+                bitmap.Save("output.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+                output( paperSize.Substring(0,1).ToUpper() + paperSize.Substring(1) + " output image saved");
+            }
+            catch (Exception e)
+            {
+                output("Error when saving output image: " + e.ToString());
+            }
 
-            //Console.WriteLine("Images saved.");
-            //System.Threading.Thread.Sleep(5 * 1000);
+            if (verbose)
+            {
+                System.Threading.Thread.Sleep(10 * 1000);
+            }
         }
 
         Image resizeImage(string imageFilename, int width, int height)
@@ -170,8 +258,15 @@ namespace ImageBundleForPrint
 
         int CmToPx(double cm)
         {
-            double dpi = 96;
             return int.Parse(Math.Ceiling(cm * dpi / 2.54).ToString());
+        }
+
+        void output(string text)
+        {
+            if (verbose)
+            {
+                Console.WriteLine(text);
+            }
         }
     }
 }
