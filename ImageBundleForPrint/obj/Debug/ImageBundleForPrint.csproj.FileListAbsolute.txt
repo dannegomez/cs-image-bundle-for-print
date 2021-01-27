@@ -1,0 +1,7 @@
+C:\Users\danne\source\repos\ImageBundleForPrint\ImageBundleForPrint\obj\Debug\ImageBundleForPrint.csprojAssemblyReference.cache
+C:\Users\danne\source\repos\ImageBundleForPrint\ImageBundleForPrint\obj\Debug\ImageBundleForPrint.csproj.CoreCompileInputs.cache
+C:\Users\danne\source\repos\ImageBundleForPrint\ImageBundleForPrint\bin\Debug\ImageBundleForPrint.exe.config
+C:\Users\danne\source\repos\ImageBundleForPrint\ImageBundleForPrint\bin\Debug\ImageBundleForPrint.exe
+C:\Users\danne\source\repos\ImageBundleForPrint\ImageBundleForPrint\bin\Debug\ImageBundleForPrint.pdb
+C:\Users\danne\source\repos\ImageBundleForPrint\ImageBundleForPrint\obj\Debug\ImageBundleForPrint.exe
+C:\Users\danne\source\repos\ImageBundleForPrint\ImageBundleForPrint\obj\Debug\ImageBundleForPrint.pdb
